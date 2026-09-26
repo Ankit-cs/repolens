@@ -7,7 +7,7 @@
 
 RepoLens turns a repository into a structured `RepositoryModel`, runs analyzers over that model, and exposes the results through a CLI, REST API, and interactive Web UI.
 
-> **Current release:** `v1.8.0-alpha.1` — Python Intelligence
+> **Current release:** `v1.9.0` — Repository Intelligence Workspace
 
 ## Why RepoLens?
 
@@ -72,6 +72,26 @@ Current structural profiles include:
 | Kotlin | Structural profile |
 
 See the [language support matrix](docs/architecture/LANGUAGE_SUPPORT.md) for the current capability details.
+
+## Interactive workspace
+
+RepoLens provides a focused workspace for exploring analyzed repositories:
+
+- Dedicated analysis screen with backend-driven progress
+- Repository overview and metadata
+- Repository tree and interactive graphs
+- Search for classes, methods, packages, files, and other analyzed elements
+- Inspector for source-backed repository elements
+- Short contextual tutorial for first-time workspace navigation
+- Safe GitHub source navigation when a reliable source mapping exists
+
+### Analysis and repeated repositories
+
+RepoLens currently analyzes each submitted repository as a new analysis job. Recent repositories are stored locally in the browser for convenient access, but previous analysis results are not automatically reused.
+
+As a result, analyzing the same repository again may take approximately the same amount of time as the initial analysis. When the repository has not changed, avoiding unnecessary repeated analysis can save time.
+
+Caching, result reuse, or incremental analysis may be introduced in future releases to improve repeated-analysis performance.
 
 ## Intelligence and traceability
 
