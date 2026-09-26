@@ -89,7 +89,8 @@ public final class RepoLensServer implements AutoCloseable {
                     dto.createdAt(),
                     dto.updatedAt(),
                     dto.error(),
-                    null
+                    null,
+                    dto.progress()
             ));
         });
 

@@ -215,7 +215,8 @@ public final class AnalysisResponseMapper {
                     symbol.location().filePath(),
                     symbol.parentSymbolId().orElse(null),
                     fields,
-                    methods
+                    methods,
+                    symbol.location().startLine()
             ));
         }
         details.sort(Comparator

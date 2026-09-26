@@ -70,6 +70,7 @@ function InspectorShell({
     <aside
       className={collapsed ? "panel details-panel collapsed" : "panel details-panel"}
       aria-label="Inspector"
+      data-tutorial="inspector"
     >
       <div className="panel-head">
         <span className="panel-head-title">Inspector</span>

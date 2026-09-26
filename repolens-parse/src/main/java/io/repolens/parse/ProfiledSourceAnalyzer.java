@@ -11,6 +11,7 @@ import io.repolens.core.model.SourceLocation;
 import io.repolens.core.model.Symbol;
 import io.repolens.core.model.SymbolKind;
 import io.repolens.core.model.WorkingTreeInventory;
+import io.repolens.core.pipeline.AnalysisProgress;
 import io.repolens.core.ports.SourceAnalyzer;
 import io.repolens.parse.engine.SeartTreeSitterEngine;
 import io.repolens.parse.engine.SyntaxCapture;
@@ -88,6 +89,7 @@ public final class ProfiledSourceAnalyzer implements SourceAnalyzer {
         int relationshipSeq = 0;
 
         for (WorkingTreeInventory.InventoriedFile file : inventory.files()) {
+            try {
             LanguageProfile profile = findProfile(file.relativePath());
             String language = profile == null ? languageFromExtension(file.relativePath()) : profile.id();
             Path absolute = workingTree.resolve(file.relativePath());
@@ -205,6 +207,9 @@ public final class ProfiledSourceAnalyzer implements SourceAnalyzer {
                     }
                 }
             }
+            } finally {
+                AnalysisProgress.sourceFileRead();
+            }
         }
 
         for (PendingTypeEdge edge : pendingEdges) {
@@ -220,8 +225,11 @@ public final class ProfiledSourceAnalyzer implements SourceAnalyzer {
             ));
         }
 
+        AnalysisProgress.typeRelationshipsResolved();
         StructuralFactExtractor.extract(builder, workingTree, inventory, symbols);
+        AnalysisProgress.structuralFactsFinished();
         DocumentationIndexer.index(builder, workingTree, inventory, symbols, modules);
+        AnalysisProgress.documentationIndexed();
         return builder.build();
     }
 

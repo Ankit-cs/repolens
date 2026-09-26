@@ -51,7 +51,14 @@ public final class DefaultAnalysisRunner implements AnalysisRunner {
     @Override
     public AnalysisRunResult run(AnalysisRequest request) {
         Objects.requireNonNull(request, "request");
+        AnalysisProgress.beginFetch();
         var ingestion = ingestor.ingest(new RepositoryIngestor.IngestionRequest(request.source(), request.remote()));
+        AnalysisProgress.fetched(
+                ingestion.inventory().files().size(),
+                analyzers.stream().map(analyzer -> new AnalysisProgressTracker.NamedStage(analyzer.id(), analyzerLabel(analyzer.id()))).toList(),
+                ingestion.repository().name(),
+                ingestion.repository().remoteUrl().orElse(request.source())
+        );
         RepositoryModel model = sourceAnalyzer.analyze(
                 ingestion.repository(),
                 ingestion.workingTree(),
@@ -60,6 +67,7 @@ public final class DefaultAnalysisRunner implements AnalysisRunner {
 
         RepositoryMetadataCollector.CollectionResult metadata =
                 metadataCollector.collect(ingestion.repository(), ingestion.workingTree(), ingestion.inventory());
+        AnalysisProgress.metadataCollected();
         if (!metadata.metadata().isEmpty()) {
             model = model.withMetadata(metadata.metadata());
         }
@@ -69,8 +77,21 @@ public final class DefaultAnalysisRunner implements AnalysisRunner {
         metadata.notes().ifPresent(results::add);
         for (Analyzer analyzer : analyzers) {
             results.add(analyzer.analyze(model));
+            AnalysisProgress.analyzerFinished();
         }
         return new AnalysisRunResult(model, results, ingestion.workingTree());
+    }
+
+    static String analyzerLabel(String id) {
+        return switch (id) {
+            case "structure" -> "Structure summarized";
+            case "dependencies" -> "Dependencies analyzed";
+            case "type-dependencies" -> "Type dependencies analyzed";
+            case "test-subjects" -> "Test subjects linked";
+            case "traces" -> "Traces composed";
+            case "metrics" -> "Metrics collected";
+            default -> "Analyzer finished";
+        };
     }
 
     static Optional<AnalysisResult> ingestNotes(WorkingTreeInventory inventory) {

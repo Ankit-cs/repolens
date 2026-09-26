@@ -5,6 +5,7 @@ import io.repolens.analyzers.GraphViewProjector;
 import io.repolens.analyzers.ImpactComposer;
 import io.repolens.analyzers.TraceComposer;
 import io.repolens.api.AnalysisJobDto;
+import io.repolens.api.AnalysisProgressDto;
 import io.repolens.api.AnalysisResponseDto;
 import io.repolens.api.AnalysisResponseMapper;
 import io.repolens.core.model.AnalysisResult;
@@ -12,6 +13,8 @@ import io.repolens.core.model.GraphView;
 import io.repolens.core.model.NamedDiagram;
 import io.repolens.core.model.RepositoryModel;
 import io.repolens.core.model.Trace;
+import io.repolens.core.pipeline.AnalysisProgress;
+import io.repolens.core.pipeline.AnalysisProgressTracker;
 import io.repolens.core.ports.AnalysisRunner;
 import io.repolens.ingest.UserFacingErrors;
 
@@ -65,25 +68,34 @@ public final class AnalysisJobService implements AutoCloseable {
                 job.createdAt().toString(),
                 job.updatedAt().toString(),
                 job.error(),
-                job.status() == JobStatus.COMPLETED ? job.result() : null
+                job.status() == JobStatus.COMPLETED ? job.result() : null,
+                AnalysisProgressDto.from(job.progress())
         );
     }
 
     private void runJob(AnalysisJob job) {
         job.markRunning();
+        AnalysisProgressTracker tracker = new AnalysisProgressTracker(job::updateProgress);
         try {
-            AnalysisRunner.AnalysisRunResult run =
-                    analysisRunner.run(new AnalysisRunner.AnalysisRequest(job.source(), job.remote()));
-            List<AnalysisResult> results = run.results();
-            GraphView graph = GraphViewProjector.project(run.model(), results);
-            List<NamedDiagram> diagrams = DiagramProjector.projectAll(run.model());
-            List<Trace> traces = TraceComposer.compose(run.model());
-            AnalysisResponseDto response = AnalysisResponseMapper.from(run.model(), results, graph, diagrams, traces);
-            job.markCompleted(response, run.model(), traces);
+            AnalysisProgress.use(tracker, () -> runTracked(job, tracker));
         } catch (Exception ex) {
             job.markFailed(UserFacingErrors.sanitize(
                     ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage()));
         }
+    }
+
+    private void runTracked(AnalysisJob job, AnalysisProgressTracker tracker) {
+        AnalysisRunner.AnalysisRunResult run =
+                analysisRunner.run(new AnalysisRunner.AnalysisRequest(job.source(), job.remote()));
+        List<AnalysisResult> results = run.results();
+        GraphView graph = GraphViewProjector.project(run.model(), results);
+        AnalysisProgress.graphPrepared();
+        List<NamedDiagram> diagrams = DiagramProjector.projectAll(run.model());
+        AnalysisProgress.diagramsProjected();
+        List<Trace> traces = TraceComposer.compose(run.model());
+        AnalysisResponseDto response = AnalysisResponseMapper.from(run.model(), results, graph, diagrams, traces);
+        tracker.markFinished();
+        job.markCompleted(response, run.model(), traces);
     }
 
     @Override

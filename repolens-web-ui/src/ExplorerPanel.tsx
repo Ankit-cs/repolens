@@ -100,6 +100,7 @@ export function ExplorerPanel({
     <aside
       className={collapsed ? "panel explorer-panel collapsed" : "panel explorer-panel"}
       aria-label="Repository"
+      data-tutorial="repository"
     >
       <div className="panel-head">
         <span className="panel-head-title">Repository</span>
@@ -157,6 +158,8 @@ export function ExplorerPanel({
         ) : null}
 
         <div
+          id="repository-tree"
+          data-tutorial="tree"
           className="panel-section tree-section"
           style={{ borderTop: "1px solid var(--line)", marginTop: "0.55rem", paddingTop: "0.45rem" }}
         >

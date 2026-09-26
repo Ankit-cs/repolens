@@ -17,6 +17,7 @@ import {
   graphContentSignature,
   shouldRunLayout,
 } from "./graphPerf";
+import { assessGraph } from "./graphQuality";
 import type { ResolvedTheme } from "./theme";
 
 type Props = {
@@ -27,6 +28,7 @@ type Props = {
   selection: Selection;
   focusId: string | null;
   onSelect: (selection: Selection) => void;
+  onOpenSource?: (nodeId: string) => void;
   theme: ResolvedTheme;
 };
 
@@ -322,15 +324,18 @@ function RepositoryGraphComponent({
   selection,
   focusId,
   onSelect,
+  onOpenSource,
   theme,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<Core | null>(null);
   const onSelectRef = useRef(onSelect);
+  const onOpenSourceRef = useRef(onOpenSource);
   const viewRef = useRef(view);
   const layoutSignatureRef = useRef<string | null>(null);
   const filteredEdgesRef = useRef<GraphEdge[]>([]);
   onSelectRef.current = onSelect;
+  onOpenSourceRef.current = onOpenSource;
   viewRef.current = view;
 
   const filtered = useMemo(
@@ -361,6 +366,9 @@ function RepositoryGraphComponent({
 
     cy.on("tap", "node", (event) => {
       onSelectRef.current({ type: "node", id: event.target.id() });
+    });
+    cy.on("dbltap", "node", (event) => {
+      onOpenSourceRef.current?.(event.target.id());
     });
     cy.on("tap", "edge", (event) => {
       onSelectRef.current({ type: "edge", id: event.target.id() });
@@ -573,8 +581,27 @@ function RepositoryGraphComponent({
       <div
         className="graph-canvas"
         ref={containerRef}
+        data-tutorial="graph"
         aria-label="Repository architecture graph"
       />
+      <details className="graph-node-list">
+        <summary>Graph nodes ({filtered.nodes.length})</summary>
+        <ul>
+          {filtered.nodes.slice(0, 40).map((node) => (
+            <li key={node.id}>
+              <button type="button" onClick={() => onSelect({ type: "node", id: node.id })}>
+                {node.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+        {filtered.nodes.length > 40 ? <p>Showing 40 nodes.</p> : null}
+        {assessGraph(filtered.nodes, filtered.edges)
+          .filter((note) => note.level === "warn")
+          .map((note) => (
+            <p key={note.message} className="graph-quality-note">{note.message}</p>
+          ))}
+      </details>
     </div>
   );
 }
@@ -590,7 +617,6 @@ function layoutOptions(view: GraphViewMode, nodeCount: number) {
     idealEdgeLength: () => ideal,
     gravity: 0.45,
     nestingFactor: 1.1,
-    // Cap iterations harder on large graphs — layout is not on the zoom path.
     numIter: Math.min(nodeCount >= 80 ? 900 : 1400, 600 + nodeCount * 4),
     padding: 48,
   };

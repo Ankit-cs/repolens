@@ -44,6 +44,7 @@ export type SymbolDetail = {
   parentSymbolId: string | null;
   fieldNames: string[];
   methodNames: string[];
+  startLine?: number;
 };
 
 export type RepositoryMetadata = {
@@ -230,12 +231,30 @@ export function symbolDetailForNode(
   return result.symbols.find((symbol) => symbol.id === node.sourceEntityId) ?? null;
 }
 
+export type AnalysisStage = {
+  id: string;
+  label: string;
+  state: "pending" | "active" | "complete";
+};
+
+export type AnalysisProgress = {
+  percent: number | null;
+  activeStageId: string | null;
+  activeLabel: string | null;
+  detailAvailable: boolean;
+  repositoryName?: string | null;
+  sourceUrl?: string | null;
+  fileCount?: number | null;
+  stages: AnalysisStage[];
+};
+
 export type JobStatus = {
   id: string;
   status: "QUEUED" | "RUNNING" | "COMPLETED" | "FAILED";
   source: string;
   remote: boolean;
   error: string | null;
+  progress?: AnalysisProgress | null;
 };
 
 function looksRemote(source: string): boolean {
@@ -243,11 +262,29 @@ function looksRemote(source: string): boolean {
   return value.startsWith("https://") || value.startsWith("git@");
 }
 
-export async function startAnalysis(source: string): Promise<JobStatus> {
+/** Status poll interval. Job state is QUEUED, RUNNING, COMPLETED, or FAILED. */
+export const POLL_INTERVAL_MS = 400;
+
+export class AnalysisFailedError extends Error {
+  readonly reason: string | null;
+
+  constructor(reason: string | null) {
+    super(reason && reason.trim() ? reason : "Analysis failed");
+    this.name = "AnalysisFailedError";
+    this.reason = reason && reason.trim() ? reason : null;
+  }
+}
+
+export function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === "AbortError";
+}
+
+export async function startAnalysis(source: string, signal?: AbortSignal): Promise<JobStatus> {
   const response = await fetch("/v1/analyze", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ source: source.trim(), remote: looksRemote(source) }),
+    signal,
   });
   const body = await response.json();
   if (!response.ok) {
@@ -256,8 +293,8 @@ export async function startAnalysis(source: string): Promise<JobStatus> {
   return body as JobStatus;
 }
 
-export async function getJob(id: string): Promise<JobStatus> {
-  const response = await fetch(`/v1/jobs/${id}`);
+export async function getJob(id: string, signal?: AbortSignal): Promise<JobStatus> {
+  const response = await fetch(`/v1/jobs/${id}`, { signal });
   const body = await response.json();
   if (!response.ok) {
     throw new Error(body.error ?? "Failed to load job");
@@ -265,8 +302,8 @@ export async function getJob(id: string): Promise<JobStatus> {
   return body as JobStatus;
 }
 
-export async function getResult(id: string): Promise<AnalysisResponse> {
-  const response = await fetch(`/v1/jobs/${id}/result`);
+export async function getResult(id: string, signal?: AbortSignal): Promise<AnalysisResponse> {
+  const response = await fetch(`/v1/jobs/${id}/result`, { signal });
   const body = await response.json();
   if (!response.ok) {
     throw new Error(body.error ?? "Failed to load result");
@@ -277,16 +314,49 @@ export async function getResult(id: string): Promise<AnalysisResponse> {
 export async function waitForResult(
   id: string,
   onStatus?: (status: JobStatus) => void,
+  signal?: AbortSignal,
 ): Promise<AnalysisResponse> {
   for (;;) {
-    const job = await getJob(id);
+    throwIfAborted(signal);
+    const job = await getJob(id, signal);
+    throwIfAborted(signal);
     onStatus?.(job);
     if (job.status === "COMPLETED") {
-      return getResult(id);
+      return getResult(id, signal);
     }
     if (job.status === "FAILED") {
-      throw new Error(job.error ?? "Analysis failed");
+      throw new AnalysisFailedError(job.error);
     }
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await delay(POLL_INTERVAL_MS, signal);
   }
+}
+
+function throwIfAborted(signal?: AbortSignal) {
+  if (signal?.aborted) {
+    throw signal.reason instanceof Error ? signal.reason : abortError();
+  }
+}
+
+function delay(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(signal.reason instanceof Error ? signal.reason : abortError());
+      return;
+    }
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal?.reason instanceof Error ? signal.reason : abortError());
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+function abortError(): Error {
+  const error = new Error("Aborted");
+  error.name = "AbortError";
+  return error;
 }

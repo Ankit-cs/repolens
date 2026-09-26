@@ -1,8 +1,10 @@
 package io.repolens.web;
 
+import io.repolens.api.AnalysisProgressDto;
 import io.repolens.api.AnalysisResponseDto;
 import io.repolens.core.model.RepositoryModel;
 import io.repolens.core.model.Trace;
+import io.repolens.core.pipeline.AnalysisProgressSnapshot;
 
 import java.time.Instant;
 import java.util.List;
@@ -23,6 +25,7 @@ public final class AnalysisJob {
     private volatile AnalysisResponseDto result;
     private volatile RepositoryModel model;
     private volatile List<Trace> traces = List.of();
+    private volatile AnalysisProgressSnapshot progress;
 
     public AnalysisJob(String id, String source, boolean remote) {
         this.id = Objects.requireNonNull(id, "id");
@@ -71,6 +74,15 @@ public final class AnalysisJob {
 
     public List<Trace> traces() {
         return traces;
+    }
+
+    public AnalysisProgressSnapshot progress() {
+        return progress;
+    }
+
+    public synchronized void updateProgress(AnalysisProgressSnapshot snapshot) {
+        this.progress = snapshot;
+        this.updatedAt = Instant.now();
     }
 
     public synchronized void markRunning() {

@@ -13,7 +13,8 @@ public record AnalysisJobDto(
         String createdAt,
         String updatedAt,
         String error,
-        AnalysisResponseDto result
+        AnalysisResponseDto result,
+        AnalysisProgressDto progress
 ) {
     public AnalysisJobDto {
         Objects.requireNonNull(id, "id");

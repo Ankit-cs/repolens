@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   explorerGridClass,
+  analysisSurface,
   isExploring,
   isMarketingLanding,
   phaseForNewLens,
@@ -27,6 +28,16 @@ describe("appNav", () => {
   it("exploring is only ready phase", () => {
     expect(isExploring("ready")).toBe(true);
     expect(isExploring("compose")).toBe(false);
+  });
+
+  it("uses the analysis screen for every running job, including a second repository", () => {
+    expect(analysisSurface("landing", false)).toBe("form");
+    expect(analysisSurface("compose", false)).toBe("form");
+    expect(analysisSurface("running", false)).toBe("analysis");
+    expect(analysisSurface("running", true)).toBe("analysis");
+    expect(analysisSurface("error", false)).toBe("error");
+    expect(analysisSurface("ready", true)).toBe("workspace");
+    expect(analysisSurface("ready", false)).toBe("form");
   });
 
   it("collapsed panels use grid classes that free graph space", () => {

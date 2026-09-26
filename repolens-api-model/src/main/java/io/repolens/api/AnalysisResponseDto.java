@@ -226,7 +226,8 @@ public record AnalysisResponseDto(
             String filePath,
             String parentSymbolId,
             List<String> fieldNames,
-            List<String> methodNames
+            List<String> methodNames,
+            int startLine
     ) {
         public SymbolDetailDto {
             Objects.requireNonNull(id, "id");

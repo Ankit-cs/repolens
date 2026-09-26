@@ -1,6 +1,7 @@
 package io.repolens.parse.structural;
 
 import io.repolens.core.model.RepositoryModel;
+import io.repolens.core.pipeline.AnalysisProgress;
 import io.repolens.core.model.Symbol;
 import io.repolens.core.model.WorkingTreeInventory;
 
@@ -29,29 +30,33 @@ public final class StructuralFactExtractor {
         StructuralFactSink sink = new StructuralFactSink(builder, symbols);
 
         for (WorkingTreeInventory.InventoriedFile file : inventory.files()) {
-            if (sink.factsFull()) {
-                break;
-            }
-            String path = file.relativePath().replace('\\', '/');
-            String lower = path.toLowerCase(Locale.ROOT);
-            Path absolute = workingTree.resolve(file.relativePath());
-            String source = read(absolute);
-            if (source == null || source.isBlank()) {
-                continue;
-            }
+            try {
+                if (sink.factsFull()) {
+                    break;
+                }
+                String path = file.relativePath().replace('\\', '/');
+                String lower = path.toLowerCase(Locale.ROOT);
+                Path absolute = workingTree.resolve(file.relativePath());
+                String source = read(absolute);
+                if (source == null || source.isBlank()) {
+                    continue;
+                }
 
-            if (lower.endsWith(".java")) {
-                JavaStructuralFactExtractor.extract(sink, path, source);
-            } else if (lower.endsWith(".py")) {
-                PythonStructuralFactExtractor.extract(sink, path, source);
-            } else if (DeploymentStructuralFactExtractor.isComposeFile(lower)) {
-                DeploymentStructuralFactExtractor.extractCompose(sink, path, source);
-            } else if (lower.endsWith("dockerfile")
-                    || Path.of(lower).getFileName().toString().equals("dockerfile")) {
-                DeploymentStructuralFactExtractor.extractDockerfile(sink, path, source);
-            } else if (lower.endsWith(".yml") || lower.endsWith(".yaml") || lower.endsWith(".properties")) {
-                DeploymentStructuralFactExtractor.extractKubernetes(sink, path, source);
-                ConfigStructuralFactExtractor.extractDatasourceHint(sink, path, source);
+                if (lower.endsWith(".java")) {
+                    JavaStructuralFactExtractor.extract(sink, path, source);
+                } else if (lower.endsWith(".py")) {
+                    PythonStructuralFactExtractor.extract(sink, path, source);
+                } else if (DeploymentStructuralFactExtractor.isComposeFile(lower)) {
+                    DeploymentStructuralFactExtractor.extractCompose(sink, path, source);
+                } else if (lower.endsWith("dockerfile")
+                        || Path.of(lower).getFileName().toString().equals("dockerfile")) {
+                    DeploymentStructuralFactExtractor.extractDockerfile(sink, path, source);
+                } else if (lower.endsWith(".yml") || lower.endsWith(".yaml") || lower.endsWith(".properties")) {
+                    DeploymentStructuralFactExtractor.extractKubernetes(sink, path, source);
+                    ConfigStructuralFactExtractor.extractDatasourceHint(sink, path, source);
+                }
+            } finally {
+                AnalysisProgress.structuralFileRead();
             }
         }
 

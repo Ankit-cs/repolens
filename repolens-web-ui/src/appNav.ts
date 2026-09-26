@@ -19,6 +19,25 @@ export function isExploring(phase: AppPhase): boolean {
   return phase === "ready";
 }
 
+export type AppSurface = "analysis" | "error" | "form" | "workspace";
+
+/**
+ * Every analysis submission uses the full-screen analysis surface.
+ * The previous workspace is not shown again until that job completes.
+ */
+export function analysisSurface(phase: AppPhase, hasResult: boolean): AppSurface {
+  if (phase === "running") {
+    return "analysis";
+  }
+  if (phase === "error") {
+    return "error";
+  }
+  if (phase === "ready" && hasResult) {
+    return "workspace";
+  }
+  return "form";
+}
+
 export function showNewLensControl(phase: AppPhase): boolean {
   return phase === "ready" || phase === "running";
 }
