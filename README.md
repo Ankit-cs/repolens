@@ -623,8 +623,8 @@ See [LICENSE](LICENSE) for details.
 
 **Backend Developer · Java · Spring Boot · Developer Tools**
 
-[GitHub](https://github.com/chandru2002-2/chandru2002-2) ·
-[LinkedIn](https://www.linkedin.com/)
+[GitHub](https://github.com/chandru2002-2/) ·
+[LinkedIn](https://www.linkedin.com/in/chandru-mohan-232932240/)
 
 ---
 
