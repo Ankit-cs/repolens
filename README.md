@@ -1,219 +1,643 @@
+<div align="center">
+
 # RepoLens
 
-**Repository intelligence engine for understanding unfamiliar codebases through deterministic static analysis.**
+### Understand an unfamiliar codebase before you modify it.
 
-[![CI](https://github.com/chandru2002-2/repolens/actions/workflows/ci.yml/badge.svg)](https://github.com/chandru2002-2/repolens/actions/workflows/ci.yml)
-[![Latest Release](https://img.shields.io/github/v/release/chandru2002-2/repolens)](https://github.com/chandru2002-2/repolens/releases)
+**Repository intelligence for developers who need to understand software before changing it.**
 
-RepoLens turns a repository into a structured `RepositoryModel`, runs analyzers over that model, and exposes the results through a CLI, REST API, and interactive Web UI.
+[![GitHub Stars](https://img.shields.io/github/stars/chandru2002-2/repolens?style=flat\&logo=github)](https://github.com/chandru2002-2/repolens/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/chandru2002-2/repolens?style=flat\&logo=github)](https://github.com/chandru2002-2/repolens/network/members)
+[![Latest Release](https://img.shields.io/github/v/release/chandru2002-2/repolens?display_name=tag\&style=flat)](https://github.com/chandru2002-2/repolens/releases)
+[![GitHub Issues](https://img.shields.io/github/issues/chandru2002-2/repolens?style=flat)](https://github.com/chandru2002-2/repolens/issues)
+[![Java](https://img.shields.io/badge/Java-21+-orange?style=flat\&logo=openjdk)](https://www.oracle.com/java/)
+[![React](https://img.shields.io/badge/React-TypeScript-blue?style=flat\&logo=react)](https://react.dev/)
+[![Gradle](https://img.shields.io/badge/build-Gradle-02303A?style=flat\&logo=gradle)](https://gradle.org/)
 
-> **Current release:** `v1.9.0` — Repository Intelligence Workspace
+<br>
 
-## Why RepoLens?
+[**🚀 Try RepoLens**](https://repolens-dsce.onrender.com/)    ·   
+[**📖 Documentation**](docs/)    ·   
+[**⭐ Star on GitHub**](https://github.com/chandru2002-2/repolens)
 
-Understanding an unfamiliar codebase usually requires jumping between files, packages, documentation, APIs, tests, and database models.
+</div>
 
-RepoLens brings those structural relationships into one analyzable model and visual workspace.
+---
 
-### Core capabilities
+## See the Codebase, Not Just the Files
 
-- Repository architecture and package dependency analysis
-- Classes, methods, fields, types, and relationships
-- REST endpoint discovery
-- Test discovery and test-to-subject relationships
-- Static execution traces and impact analysis
-- JPA entity and relationship analysis
-- Interactive architecture and dependency graphs
-- Sequence, ER, DFD, activity, deployment, use-case, and state-machine projections
-- Documentation-aware inspection
-- CLI, REST API, and Web UI
-- Large-repository safety limits and graceful degradation
-- Evidence-backed relationships with confidence levels
+Large repositories are difficult to understand.
 
-## Demo
+You jump between packages, classes, methods, APIs, dependencies, tests, configuration and documentation just to answer a simple question:
 
-**[Open the RepoLens Live Demo →](https://repolens-dsce.onrender.com/)**
+> **"How does this codebase actually fit together?"**
 
-## Architecture
+RepoLens turns those scattered structural signals into an **interactive repository intelligence workspace**.
 
 ```text
-GitHub / Local Repository
-          ↓
-      Ingestion
-          ↓
- Language Analysis
-(Tree-sitter when available,
- structural fallback otherwise)
-          ↓
-   RepositoryModel
-          ↓
-      Analyzers
-          ↓
- Graph / Diagram Projections
-          ↓
- CLI · REST API · Web UI
+                    GitHub Repository
+                           │
+                           ▼
+                       RepoLens
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+          ▼                ▼                ▼
+      Structure       Relationships     Documentation
+          │                │                │
+          └────────────────┼────────────────┘
+                           ▼
+                    Repository Model
+                           │
+                           ▼
+                 Interactive Workspace
 ```
 
-The core analysis is deterministic and does not require an LLM. AI explanations are planned separately and are not required for repository analysis.
+**Explore the structure. Understand the relationships. Then change the code.**
 
-## Language support
+---
 
-Current structural profiles include:
+<div align="center">
 
-| Language | Support |
-|---|---|
-| Java | Structural analysis |
-| JavaScript | Structural profile |
-| TypeScript | Structural profile |
-| Python | Structural analysis |
-| Go | Structural profile |
-| Rust | Structural profile |
-| C# | Structural profile |
-| Kotlin | Structural profile |
+## 🚀 Explore RepoLens
 
-See the [language support matrix](docs/architecture/LANGUAGE_SUPPORT.md) for the current capability details.
+### Analyze a public GitHub repository and explore its structure.
 
-## Interactive workspace
+[**Open the Live Demo →**](https://repolens-dsce.onrender.com/)
 
-RepoLens provides a focused workspace for exploring analyzed repositories:
+</div>
 
-- Dedicated analysis screen with backend-driven progress
-- Repository overview and metadata
-- Repository tree and interactive graphs
-- Search for classes, methods, packages, files, and other analyzed elements
-- Inspector for source-backed repository elements
-- Short contextual tutorial for first-time workspace navigation
-- Safe GitHub source navigation when a reliable source mapping exists
+> The hosted deployment is intended for exploration. Run RepoLens locally when you need full control over the analysis workflow.
 
-### Analysis and repeated repositories
+---
 
-RepoLens currently analyzes each submitted repository as a new analysis job. Recent repositories are stored locally in the browser for convenient access, but previous analysis results are not automatically reused.
+# Why RepoLens?
 
-As a result, analyzing the same repository again may take approximately the same amount of time as the initial analysis. When the repository has not changed, avoiding unnecessary repeated analysis can save time.
+Understanding an unfamiliar repository normally requires moving between:
 
-Caching, result reuse, or incremental analysis may be introduced in future releases to improve repeated-analysis performance.
+**Files → Packages → Classes → Methods → Dependencies → APIs → Tests → Documentation**
 
-## Intelligence and traceability
+RepoLens brings these signals together.
 
-RepoLens v1.7+ extends structural analysis into repository intelligence:
+### Instead of asking:
 
-- HTTP endpoint facts
-- Java and Python test discovery
-- Test-to-subject relationship inference
-- Static execution trace composition
-- Entity impact analysis
-- Evidence and inference provenance
-- Confidence-aware relationships
-- Runtime/static distinctions in CLI output
+> "Where is this code?"
 
-The design keeps repository facts as the canonical source of truth and avoids inventing relationships when sufficient evidence is unavailable.
+### You can start asking:
 
-## Interactive diagrams
+> "How is this repository structured?"
 
-Available projections include:
+> "What depends on this class?"
 
-- **Architecture** — repository and package/module layout
-- **Package** — package-to-package dependencies
-- **Class** — classes, interfaces, inheritance, and implementation
-- **Sequence** — evidence-backed static call relationships
-- **ER** — JPA entities and annotated associations
-- **DFD** — API processes, services, and data stores
-- **Activity** — simplified method-level activity summaries
-- **Deployment** — Docker, Compose, Kubernetes, and datasource hints
-- **Use Case** — operations inferred from REST mappings/controllers
-- **State Machine** — evidence-backed status transitions
+> "Which APIs connect to these components?"
 
-Large graphs are capped with explicit truncation information rather than silently dropping context.
+> "What tests are related to this code?"
 
-## Project structure
+> "What relationships exist between these entities?"
 
-| Module | Responsibility |
-|---|---|
-| `repolens-core` | Domain model, ports, and analysis pipeline |
-| `repolens-ingest` | Local and GitHub repository ingestion |
-| `repolens-parse` | Source code → RepositoryModel |
-| `repolens-analyzers` | Analysis and graph/diagram projection |
-| `repolens-api-model` | Stable API DTOs |
-| `repolens-cli` | CLI interface |
-| `repolens-web` | Javalin API and packaged UI |
-| `repolens-web-ui` | React/Vite frontend |
+---
+
+# 🔍 Repository Intelligence
+
+RepoLens analyzes a repository and builds a structured representation of its codebase.
+
+<div align="center">
+
+| 🔎 Structure | 🔗 Relationships | 🌐 APIs        | 🧪 Tests      |
+| ------------ | ---------------- | -------------- | ------------- |
+| Packages     | Imports          | REST endpoints | Test classes  |
+| Classes      | Dependencies     | Controllers    | Test methods  |
+| Methods      | Calls            | API structure  | Test subjects |
+| Fields       | Inheritance      | Services       | Relationships |
+
+</div>
+
+### Repository Structure
+
+Explore:
+
+* packages
+* classes
+* interfaces
+* methods
+* fields
+* inheritance
+* implementations
+* imports
+* dependencies
+
+### API Analysis
+
+Detect supported REST endpoints and connect them with surrounding application structures.
+
+### Test Intelligence
+
+Discover tests and connect them to related code when sufficient structural evidence exists.
+
+### Documentation Analysis
+
+Inspect repository documentation, including:
+
+* `README`
+* `docs/`
+* documented entities
+* relationships between documentation and repository entities
+
+---
+
+# 🗺️ Explore the Codebase Visually
+
+RepoLens provides multiple views of the same underlying repository model.
+
+```text
+Architecture
+     │
+     ├── Package
+     ├── Class
+     ├── Sequence
+     ├── ER
+     ├── DFD
+     ├── Activity
+     ├── Deployment
+     ├── Use Case
+     └── State Machine
+```
+
+### Architecture
+
+Understand the high-level organization of the repository.
+
+### Package
+
+Explore package and module dependencies.
+
+### Class
+
+Inspect classes, interfaces, methods, fields, inheritance and implementations.
+
+### Sequence
+
+Explore statically inferred call relationships.
+
+### ER
+
+Inspect database and entity relationships where structural evidence is available.
+
+### DFD
+
+Explore data-flow-oriented relationships.
+
+### Activity
+
+Inspect supported activity and control-flow signals.
+
+### Deployment
+
+Explore deployment relationships derived from supported configuration.
+
+### Use Case
+
+Explore structural relationships relevant to use-case-oriented views.
+
+### State Machine
+
+Inspect supported state-transition evidence.
+
+---
+
+# 🧠 Intelligence Without Guessing
+
+RepoLens is built around a simple principle:
+
+> **When the repository does not provide enough evidence, don't invent the relationship.**
+
+Relationships are derived from structural evidence.
+
+For example:
+
+```text
+┌─────────────────────────────┐
+│       High Confidence       │
+│                             │
+│ Typed receiver              │
+│ Statically identifiable     │
+│ relationship                │
+└─────────────────────────────┘
+
+              ↓
+
+┌─────────────────────────────┐
+│      Medium Confidence      │
+│                             │
+│ Supported structural        │
+│ name-based heuristic        │
+└─────────────────────────────┘
+
+              ↓
+
+┌─────────────────────────────┐
+│    Insufficient Evidence    │
+│                             │
+│ Relationship is not emitted │
+└─────────────────────────────┘
+```
+
+This keeps the repository model grounded in what can actually be established from the code.
+
+---
+
+# ☕ Built for Real Codebases
+
+RepoLens includes specialized structural analysis for supported **Java and Spring** repositories.
+
+It can identify signals such as:
+
+* Spring controllers
+* REST endpoints
+* services
+* repositories
+* JPA entities
+* entity relationships
+* method calls
+* configuration
+* application structure
+
+All of these are derived from static repository evidence rather than runtime execution.
+
+---
+
+# 🌐 Language Support
+
+| Language       | Support     |
+| -------------- | ----------- |
+| **Java**       | ✅ Supported |
+| **JavaScript** | 🟡 Partial  |
+| **TypeScript** | 🟡 Partial  |
+| **Python**     | 🟡 Partial  |
+| **Go**         | 🟡 Partial  |
+| **Rust**       | 🟡 Partial  |
+| **C#**         | 🟡 Partial  |
+| **Kotlin**     | 🟡 Partial  |
+
+Language coverage is actively evolving.
+
+→ [View the language support matrix](docs/architecture/LANGUAGE_SUPPORT.md)
+
+---
+
+# ⚙️ How It Works
+
+RepoLens separates repository ingestion, parsing, analysis and presentation.
+
+```text
+                       Repository
+                           │
+                           ▼
+                      Ingestion
+                           │
+                           ▼
+                   Language Parsing
+                           │
+                           ▼
+                    RepositoryModel
+                           │
+             ┌─────────────┼─────────────┐
+             ▼             ▼             ▼
+         Structure     Dependencies     Tests
+             │             │             │
+             └─────────────┼─────────────┘
+                           ▼
+                        Analysis
+                           │
+                           ▼
+                        GraphView
+                           │
+              ┌────────────┼────────────┐
+              ▼            ▼            ▼
+             CLI          API          Web UI
+                                        │
+                                        ▼
+                                    Visualizations
+```
+
+The `RepositoryModel` is the central contract between ingestion, analysis and presentation.
+
+The CLI and Web layers remain adapters around the analysis engine rather than owning language-specific parsing logic.
+
+→ [Architecture](docs/architecture/)
+→ [Repository Layout](docs/architecture/REPO_LAYOUT.md)
+→ [Architecture Decision Records](docs/adr/)
+→ [Language Support](docs/architecture/LANGUAGE_SUPPORT.md)
+
+---
+
+# 🛠️ Run It Yourself
 
 ## Requirements
 
-- Java 21+
-- Git
-- Node.js 20+ for rebuilding the Web UI
+* Java 21+
+* Git
+* Node.js 20+ for Web UI development
 
-## Quick start
+### Clone
 
-Run the test suite:
+```bash
+git clone https://github.com/chandru2002-2/repolens.git
+cd repolens
+```
+
+### Build & Test
 
 ```bash
 ./gradlew test
 ```
 
-Start the Web UI:
+---
 
-```bash
-./gradlew :repolens-cli:run --args='serve --port 8080'
-```
+## Analyze a Repository
 
-Then open:
-
-```text
-http://localhost:8080
-```
-
-Analyze a local repository:
+### Basic analysis
 
 ```bash
 ./gradlew :repolens-cli:run --args='analyze .'
 ```
 
-JSON output:
+### JSON output
 
 ```bash
 ./gradlew :repolens-cli:run --args='analyze . --json'
 ```
 
-## Continuous Integration
+### Save analysis
 
-GitHub Actions runs on pushes and pull requests to `main` and validates:
+```bash
+./gradlew :repolens-cli:run --args='analyze . -o analysis.json'
+```
 
-- Backend tests with Java 21
-- Frontend installation, tests, and production build
-- Docker image build validation
+---
 
-## Documentation
+# 🌐 Run the Web Workspace
 
-- [Documentation index](docs/README.md)
-- [Project status](PROJECT_STATUS.md)
-- [Roadmap](ROADMAP.md)
-- [Architecture Decision Records](docs/adr/)
-- [Contributing guide](CONTRIBUTING.md)
+Start the server:
 
-## Safety and analysis limits
+```bash
+./gradlew :repolens-cli:run --args='serve --port 8080'
+```
 
-RepoLens applies explicit ingestion limits so large or problematic repositories do not silently produce unreliable results.
+Open:
 
-Examples include:
+```text
+http://localhost:8080
+```
 
-- 5 MB default per-file limit
-- Repository-wide file-count, size, and depth limits
-- Binary/media exclusion
-- Non-blocking warnings for skipped oversized files
-- Confidence-aware relationship inference
+The Web UI provides an interactive repository graph explorer powered by Cytoscape.
 
-## Project status
+---
 
-RepoLens is under active development. Releases are published as functionality is added and validated.
+# 💻 Web UI Development
 
-The repository currently does **not declare a software license**. A license should be added before describing the project as licensed for redistribution.
+The Web UI lives in:
 
-## Author
+```text
+repolens-web-ui/
+```
 
-**Chandru M**
+Install dependencies:
 
-Java Backend Developer · Spring Boot · Repository Intelligence
+```bash
+cd repolens-web-ui
+npm ci
+```
 
-[GitHub](https://github.com/chandru2002-2)
+Development:
+
+```bash
+npm run dev
+```
+
+Production build:
+
+```bash
+npm run build
+```
+
+Package the UI:
+
+```bash
+./scripts/package-ui.sh
+```
+
+---
+
+# 🏗️ Project Architecture
+
+```text
+repolens/
+│
+├── repolens-core/
+│   └── Domain model and core contracts
+│
+├── repolens-parse/
+│   └── Language parsing and structural extraction
+│
+├── repolens-analyze/
+│   └── Repository analysis
+│
+├── repolens-cli/
+│   └── Command-line interface
+│
+├── repolens-web/
+│   └── Web API and packaged UI
+│
+├── repolens-web-ui/
+│   └── React / Vite interface
+│
+├── docs/
+│   ├── adr/
+│   └── architecture/
+│
+└── scripts/
+```
+
+→ [Explore the repository architecture](docs/architecture/REPO_LAYOUT.md)
+
+---
+
+# 🎯 Design Philosophy
+
+RepoLens intentionally follows a few principles.
+
+### Deterministic First
+
+Repository intelligence should come from reproducible structural analysis.
+
+### Evidence-Backed
+
+Relationships should have a structural basis.
+
+### Graceful Degradation
+
+When a parser or analyzer cannot establish a fact, analysis should continue where possible.
+
+### Local First
+
+The core analysis workflow should remain useful without requiring a cloud database or mandatory AI service.
+
+### AI Optional
+
+AI may eventually explain structured RepoLens results, but it should not be responsible for discovering the underlying repository structure.
+
+### Modular
+
+RepoLens is intentionally designed as a modular monolith rather than a collection of unnecessary services.
+
+---
+
+# 📊 What RepoLens Can Analyze
+
+* Repository structure
+* Packages
+* Classes
+* Methods
+* Fields
+* Inheritance
+* Implementations
+* Dependencies
+* REST endpoints
+* Tests
+* Test-to-subject relationships
+* Method calls
+* Impact relationships
+* JPA entities
+* Documentation
+* Architecture
+* Sequence relationships
+* ER relationships
+* DFD relationships
+* Activity signals
+* Deployment relationships
+* Use-case relationships
+* State transitions
+* Repository metadata
+
+---
+
+# ⚠️ Current Limitations
+
+RepoLens is a **static-analysis system**, not a runtime debugger.
+
+Current limitations include:
+
+* Private GitHub repositories are not currently supported.
+* Non-GitHub remote hosts are not currently supported.
+* Runtime behavior cannot be completely reconstructed through static analysis.
+* Call resolution can be heuristic.
+* Specialized diagrams may be empty when structural signals are unavailable.
+* Large graphs are subject to analysis limits.
+* Full arbitrary-method control-flow reconstruction is not currently supported.
+* Some language profiles are partial.
+* Persistent job storage is not currently part of the core workflow.
+* Remote repository caching currently reuses an existing cached repository rather than always fetching the latest state.
+
+→ [View Project Status](PROJECT_STATUS.md)
+
+---
+
+# 🛣️ Roadmap
+
+RepoLens is actively evolving.
+
+Current development areas include:
+
+* richer node and entity details
+* graph export
+* improved multi-platform parser support
+* optional AI explanations over structured analysis
+* persistent analysis/job storage
+* remote repository cache freshness
+* expanded language support
+
+→ [View Roadmap](ROADMAP.md)
+
+---
+
+# 🤝 Contributing
+
+RepoLens is open to contributions.
+
+You can contribute to:
+
+* language support
+* structural extractors
+* graph visualization
+* UI improvements
+* documentation
+* analysis quality
+* tests
+* performance
+* developer experience
+
+Before making architectural changes, read:
+
+→ [CONTRIBUTING.md](CONTRIBUTING.md)
+→ [Architecture Decision Records](docs/adr/)
+→ [Repository Layout](docs/architecture/REPO_LAYOUT.md)
+
+### 🟢 Good First Issues
+
+New to the project?
+
+[**Browse Good First Issues →**](https://github.com/chandru2002-2/repolens/issues?q=is%3Aissue+label%3A%22good+first+issue%22)
+
+Have an idea?
+
+[**Start a GitHub Discussion →**](https://github.com/chandru2002-2/repolens/discussions)
+
+---
+
+# 📌 Project Status
+
+<div align="center">
+
+### RepoLens `v1.9.0`
+
+**Repository Intelligence Workspace**
+
+</div>
+
+Currently focused on:
+
+`Analysis Quality` · `Visualization` · `Developer Experience` · `Language Coverage` · `Architecture Exploration`
+
+---
+
+# 📄 License
+
+RepoLens is licensed under the **MIT License**.
+
+See [LICENSE](LICENSE) for details.
+
+---
+
+# 👨‍💻 Built by Chandru M
+
+**Backend Developer · Java · Spring Boot · Developer Tools**
+
+[GitHub](https://github.com/chandru2002-2/chandru2002-2) ·
+[LinkedIn](https://www.linkedin.com/)
+
+---
+
+<div align="center">
+
+# ⭐ Like RepoLens?
+
+If RepoLens helps you understand a repository, give it a star.
+
+[**⭐ Star RepoLens on GitHub**](https://github.com/chandru2002-2/repolens)
+
+<br>
+
+**Understand the codebase before you change it.**
+
+</div>
