@@ -1,55 +1,37 @@
 # Project Status
 
-**Date:** 2026-09-13
-**Phase:** Interactive Repository Intelligence
-**Version:** `1.6.0` (released)
+**Date:** 2026-10-06
+**Phase:** Repository Intelligence Workspace
+**Version:** `v1.9.0` (current release)
 
-## Current capabilities
+## Current state
 
-- End-to-end local + public GitHub analysis path
-- CLI: `ingest`, `analyze [--json] [-o file]`, `serve`
-- Web API + packaged Web UI (Cytoscape graph explorer)
-- Contributor docs: `CONTRIBUTING.md`, `docs/README.md`, `docs/architecture/REPO_LAYOUT.md`, `./scripts/package-ui.sh`
-- Diagram modes: Architecture, Package, Class, Sequence, ER, DFD, Activity, Deployment, Use Case, State Machine
-- Client-side graph filtering (kinds, relationship types, name search)
-- Deterministic structural facts for specialized diagrams (Java/Spring + config heuristics)
-- Focused structural extractors under `repolens-parse/.../structural/` (JPA, Spring, calls, activity, state, deployment, config)
-- CALLS relationships carry confidence (`high` typed receiver / static type, `medium` name heuristic); low-confidence guesses are not emitted
-- State-machine transitions require assignment/return/transition-call evidence (enum or switch order alone is not enough)
-- Deployment service links require Compose `depends_on` evidence (declaration order is not enough)
-- Deterministic README / `docs/` documentation extraction and entity matching
-- Documentation-aware Inspector excerpts
-- Repository metadata (local Git + public GitHub API; non-blocking on failure)
-- Core analyzers + GraphView projection (including EXTENDS / IMPLEMENTS when parsed)
-- Java structural fallback: fields, methods, extends, implements
-- Oversized files skipped (default 5 MB) with non-blocking ingest warnings
-- Tree-sitter with structural fallback when natives unavailable
-- Language profiles (PARTIAL): Java, JavaScript, TypeScript, Python, Go, Rust, C#, Kotlin
-- ADRs 001–011
-- Language matrix: `docs/architecture/LANGUAGE_SUPPORT.md`
+RepoLens statically analyzes local repositories and supported public GitHub repositories, then presents evidence-backed structure and relationships through the CLI, Web API, and interactive Web UI. `RepositoryModel` remains the shared contract between parsing, analysis, and those adapters.
 
-## Known limitations
+## Shipped capabilities
 
-- Private GitHub repos / non-GitHub hosts
-- Multi-arch bundled Tree-sitter natives
-- Persistent job store
-- AI features (optional explanation port is ADR-008 only; not implemented in v1.6.0)
-- Phase B+ languages (C/C++, Swift, PHP, Ruby, …)
-- Perfect runtime sequence reconstruction (static inference only)
-- Full CFG activity diagrams for arbitrary methods
-- Specialized diagrams may be empty when the repository lacks structural signals
-- Large graphs are capped by node/edge/fact limits
-- Call resolution is heuristic (not a full Java compiler); unresolved receivers yield no CALLS edge
-- Manifest ingestion, DETECTED_ONLY language status
-- Remote GitHub clone cache is reuse-only: if `~/.repolens/cache/remotes/{owner}/{repo}/.git`
-  exists, analysis uses that working tree without fetch/pull. Extra or outdated
-  files in the cache are included. Delete the cache directory to re-clone.
-- Chromium's accessibility snapshot may mark native graph-filter checkboxes as
-  `readonly` even when `readOnly`/`disabled` are false and mouse/keyboard toggle
-  works. This is an AX-tree representation quirk, not a non-interactive control.
+- Repository inventory and metadata from local Git and, when available, the public GitHub API. Metadata lookup failures do not block analysis.
+- Structural profiles for Java, JavaScript, TypeScript, Python, Go, Rust, C#, and Kotlin. Profiles contribute packages/modules, symbols, imports, and resolvable dependency relationships; all are partial rather than full-language implementations.
+- Java extraction for classes, methods, fields, `EXTENDS` / `IMPLEMENTS`, heuristic `CALLS`, Spring endpoints, Java tests, JPA/entity facts, and supported configuration signals.
+- Python extraction for Flask and FastAPI endpoint declarations and supported pytest/unittest test patterns. Extractors emit only facts they can establish; Python `CALLS` are not currently extracted.
+- Test-to-subject relationships, static traces, and impact views composed from available facts and relationships. These are evidence-limited static results, not runtime traces or test coverage.
+- Documentation indexing for repository Markdown, including `README` and `docs/`, deterministic entity matching, and documentation excerpts in the inspector.
+- Architecture, Package, Class, Sequence, ER, DFD, Activity, Deployment, Use Case, and State Machine diagram projections. Views may be empty when source evidence is absent.
+- CLI analysis with human-readable and JSON output, plus a Javalin Web API and packaged React/Cytoscape UI for interactive graph exploration, filtering, and inspection.
+- Graceful degradation: Tree-sitter is used when available and structural fallback is available otherwise; unsupported constructs are omitted, metadata failures are non-blocking, and oversized files are skipped with warnings.
+- Configured ingestion and projection limits bound repository size, file count, depth, extracted facts, and displayed graph size. Truncated diagram views report that they are capped.
 
-## Open product decisions
+## Language support
 
-- Project license (MIT vs Apache-2.0)
-- Whether to vendor/build multi-arch Tree-sitter natives in-repo
-- Hosted vs self-hosted-only product packaging
+Language support is structural and partial for all eight profiles listed above. Java currently has the broadest specialized extraction. Python has the Flask/FastAPI endpoint and Python test extractors described above. Java is currently the only profile that extracts inheritance and `CALLS` relationships; other profiles do not provide those edges. Package-manager manifests and external dependency graphs are not ingested.
+
+See [LANGUAGE_SUPPORT.md](docs/architecture/LANGUAGE_SUPPORT.md) for structural profile details. Framework-specific intelligence remains narrower than general structural parsing; an empty result is not proof that a repository has no endpoints, tests, or relationships.
+
+## Current limitations
+
+- Analysis is static: `CALLS` are heuristic, sequence views are not runtime execution, and arbitrary control flow is not fully reconstructed.
+- Framework and language coverage is incomplete. Java/Python extractors cover selected patterns; other languages may contribute structure without endpoint or test facts.
+- Large repositories and graph projections are subject to configured limits. Specialized views can be empty when no supported evidence is found.
+- Remote analysis is limited to supported public GitHub HTTPS repositories. The remote clone cache is reused without fetching updates, so cached contents may be stale.
+- Web analysis jobs are held in memory and are not durable across process restarts. CLI analysis runs synchronously.
+- AI explanations are not implemented. The accepted architecture keeps any future explanation provider optional and downstream of structured RepoLens analysis.
