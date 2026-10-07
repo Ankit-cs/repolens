@@ -107,7 +107,7 @@ impl Client {
 ```
 **Extracted Structure:**
 * **Module:** `network/client` (from file path)
-* **Imports:** `crate::util::config` ➔ `DEPENDS_ON` edge to `util` module.
+* **Imports:** `util` ➔ `DEPENDS_ON` edge to `util` module.
 * **Symbols:** `class: Client` (from struct), `method: connect`
 * **Not Supported:** `Cargo.toml` dependencies, complex `use` tree re-exports.
 
@@ -208,7 +208,7 @@ export class ApiClient {
 **Extracted Structure:**
 * **Module:** `src/api`
 * **Imports:** `./models` ➔ `DEPENDS_ON` edge to `models.ts` module.
-* **Symbols:** `class: ApiClient`, `method: fetchUser`
+* **Symbols:** `class: ApiClient`
 * **Not Supported:** Path aliases from `tsconfig.json`.
 
 ### Python (`python`) — PARTIAL
